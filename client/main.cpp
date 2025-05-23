@@ -38,23 +38,6 @@ std::ostream& operator<<(std::ostream& os, const std::expected<T, Error>& result
     return os;
 }
 
-template<typename T>
-struct std::formatter<std::expected<T,Error>> {
-    constexpr auto parse(std::format_parse_context& ctx) {
-        return ctx.begin();
-    }
-
-    auto format(const std::expected<T, Error>& expected, std::format_context& ctx) {
-        auto out = ctx.out();
-        if (expected.has_value()) {
-            out = std::format_to(out, "{}", expected.value());
-        } else {
-            out = std::format_to(out, "{}", expected.error());
-        }
-        return out;
-    }
-};
-
 class ServerConnection {
     public:
     ServerConnection(): sock_{-1} {}
@@ -115,5 +98,5 @@ int main(int argc, char** argv)
     auto server_conn = ServerConnection{};
 
     std::ignore = server_conn.Connect("127.0.0.1", 7777).value();
-    std::print(std::cout, "send: {0}\n", server_conn.Send("CAP LS 302").value());
+    std::cout << "send: " << server_conn.Send("CAP LS 302").value() << std::endl;
 }
