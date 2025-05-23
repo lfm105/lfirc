@@ -1,5 +1,9 @@
 # lfirc
 
+## Generating compile_commands.json
+
+`bazel run @hedron_compile_commands//:refresh_all`
+
 ## Links
 
  * [rfc1459 - Internet Relay Chat Protocol](https://datatracker.ietf.org/doc/html/rfc1459)
