@@ -77,6 +77,15 @@ class ServerConnection {
         return bytes_sent;
     }
 
+    std::expected<std::string, Error> Receive() {
+        char buffer[1024];
+        auto bytes_received = recv(sock_, buffer, sizeof(buffer), 0);
+        if (bytes_received == -1) {
+            return Err(Error{"recv"});
+        }
+        return std::string(buffer, bytes_received);
+    }
+
     private:
         int sock_;
 };
@@ -103,5 +112,11 @@ int main(int argc, char** argv)
     auto server_conn = ServerConnection{};
 
     std::ignore = server_conn.Connect(address.c_str(), port).value();
-    std::cout << "send: " << server_conn.Send("CAP LS 302").value() << std::endl;
+    std::cout << "send: " << server_conn.Send("CAP LS 302\r\n").value() << std::endl;
+    std::cout << "recv: " << server_conn.Receive().value() << std::endl;
+    std::cout << "send: " << server_conn.Send("PASS 1234\r\n").value() << std::endl;
+    std::cout << "send: " << server_conn.Send("NICK joaj\r\n").value() << std::endl;
+    std::cout << "send: " << server_conn.Send("USER joaj 0 * joaj\r\n").value() << std::endl;
+    std::cout << "send: " << server_conn.Send("CAP END\r\n").value() << std::endl;
+    std::cout << "recv: " << server_conn.Receive().value() << std::endl;
 }
