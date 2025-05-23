@@ -2,3 +2,5 @@ module(
     name = "lfirc",
     repo_name = "lfirc",
 )
+
+bazel_dep(name = "rules_cc", version = "0.1.1")
