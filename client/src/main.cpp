@@ -4,7 +4,80 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <optional>
+#include <cstdint>
 #include <iostream>
+#include <expected>
+
+struct Error {
+    std::string message;
+};
+
+template<typename T>
+std::unexpected<T> Err(T&& t) {
+    return std::unexpected<T>{std::forward<T>(t)};
+}
+
+std::ostream& operator<<(std::ostream& os, const Error& error) {
+    os << "Error: " << error.message;
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::nullopt_t&) {
+    os << "null";
+    return os;
+}
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, const std::expected<T, Error>& result) {
+    if (result.has_value()) {
+        os << result.value();
+    } else {
+        os << result.error();
+    }
+    return os;
+}
+
+class ServerConnection {
+    public:
+    ServerConnection(): sock_{-1} {}
+
+    ~ServerConnection() {
+        if (sock_ != -1) {
+            close(sock_);
+        }
+    }
+
+    std::expected<std::nullopt_t, Error> Connect(std::string ip_address, std::uint16_t port) {
+        sock_ = socket(AF_INET, SOCK_STREAM, 0);
+        if (sock_ == -1) {
+            return Err(Error{"socket"});
+        }
+
+        sockaddr_in server_addr;
+        memset(&server_addr, 0, sizeof(server_addr));
+        server_addr.sin_family = AF_INET;
+        server_addr.sin_port = htons(port);
+        server_addr.sin_addr.s_addr = inet_addr(ip_address.c_str());
+
+        if (connect(sock_, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
+            return Err(Error{"connect"});
+        }
+
+        return std::nullopt;
+    }
+
+    std::expected<std::uint32_t, Error> Send(std::string message) {
+        auto bytes_sent = send(sock_, message.c_str(), message.size(), 0);
+        if (bytes_sent == -1) {
+            return Err(Error{"send"});
+        }
+        return bytes_sent;
+    }
+
+    private:
+        int sock_;
+};
 
 int main(int argc, char** argv)
 {
@@ -22,26 +95,8 @@ int main(int argc, char** argv)
     std::ignore = username;
     std::ignore = password;
 
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0) {
-        perror("socket");
-        return 1;
-    }
+    auto server_conn = ServerConnection{};
 
-    sockaddr_in server_addr;
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(7777);
-    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-    if (connect(sock, (struct sockaddr*)&server_addr, sizeof(server_addr))) {
-        perror("connect");
-        return 1;
-    }
-
-    const char* message = "CAP LS 302";
-    send(sock, message, strlen(message), 0);
-
-    close(sock);
-    std::cout << "print" << std::endl;
+    std::cout << server_conn.Connect("127.0.0.1", 7777) << std::endl;
+    std::cout << "send: " << server_conn.Send("CAP LS 302") << std::endl;
 }
