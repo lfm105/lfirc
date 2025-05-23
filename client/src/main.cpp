@@ -8,6 +8,16 @@
 
 int main(int argc, char** argv)
 {
+    if (argc != 4)
+    {
+        perror("usage <program> <nick> <username> <password>");
+        return 1;
+    }
+
+    const char* nick = argv[1];
+    const char* username = argv[2];
+    const char* password = argv[3];
+
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
         perror("socket");
