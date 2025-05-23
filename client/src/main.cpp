@@ -18,6 +18,10 @@ int main(int argc, char** argv)
     const char* username = argv[2];
     const char* password = argv[3];
 
+    std::ignore = nick;
+    std::ignore = username;
+    std::ignore = password;
+
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
         perror("socket");
