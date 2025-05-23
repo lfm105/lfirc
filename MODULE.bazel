@@ -1,0 +1,4 @@
+module(
+    name = "lfirc",
+    repo_name = "lfirc",
+)

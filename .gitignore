@@ -37,3 +37,6 @@ bazel-lfirc
 bazel-out
 bazel-testlogs
 MODULE.bazel.lock
+
+# Visual Studio Code
+.vscode
