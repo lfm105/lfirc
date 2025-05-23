@@ -9,6 +9,8 @@
 #include <iostream>
 #include <expected>
 
+#include <cxxopts.hpp>
+
 struct Error {
     std::string message;
 };
@@ -81,22 +83,25 @@ class ServerConnection {
 
 int main(int argc, char** argv)
 {
-    if (argc != 4)
-    {
-        perror("usage <program> <nick> <username> <password>");
-        return 1;
-    }
+    cxxopts::Options options("lfirc", "A simple IRC client");
 
-    const char* nick = argv[1];
-    const char* username = argv[2];
-    const char* password = argv[3];
+    options.add_options()
+    ("username", "Client's username", cxxopts::value<std::string>())
+    ("password", "Client's password", cxxopts::value<std::string>())
+    ("a,address", "Server address", cxxopts::value<std::string>())
+    ("p,port", "Server port", cxxopts::value<std::uint16_t>());
 
-    std::ignore = nick;
-    std::ignore = username;
-    std::ignore = password;
+    options.parse_positional({"username", "password"});
+
+    auto args = options.parse(argc,argv);
+
+    auto username = args["username"].as<std::string>();
+    auto password = args["password"].as<std::string>();
+    auto address = args["address"].as<std::string>();
+    auto port = args["port"].as<std::uint16_t>();
 
     auto server_conn = ServerConnection{};
 
-    std::ignore = server_conn.Connect("127.0.0.1", 7777).value();
+    std::ignore = server_conn.Connect(address.c_str(), port).value();
     std::cout << "send: " << server_conn.Send("CAP LS 302").value() << std::endl;
 }

@@ -5,4 +5,7 @@ cc_binary(
     srcs = [
         "main.cpp",
     ],
+    deps = [
+        "@cxxopts//:cxxopts",
+    ]
 )
